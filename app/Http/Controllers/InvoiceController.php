@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invoice;
-use Spatie\LaravelPdf\Facades\Pdf;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -139,15 +139,8 @@ class InvoiceController extends Controller
     {
         try {
             $invoice = Invoice::findOrFail($id);
-
-            // Generate a dynamic filename
-            $fileName = 'invoice_' . $invoice->invoice_number . '.pdf';
-
-            // Use 'download()' to prompt the user to download the file
-            return Pdf::view('invoice_pdf', ['invoice' => $invoice])
-                ->format('a4')
-                ->download($fileName); // Changed from ->save() to ->download()
-
+            $pdf = Pdf::loadView('invoice_pdf', compact('invoice'));
+            return $pdf->stream($invoice->invoice_number . '.pdf');
         } catch (Exception $e) {
             // Log the error for debugging
             return redirect()->back()->with('error', 'Error in generate invoice pdf ' . $e->getMessage());
